@@ -1,0 +1,9 @@
+{
+  "PYTHON_VERSION": "python3.*" , 
+  "TARGET_DISTRO" : "Fedora",
+  "RELATED_PKGM"  :{
+    "DENDIFIED":"dnf"
+  }, 
+  "CURRENT_VERSION_RELEASE":30,
+ "CMD_RELEASE_MOD":"lsb_release --all" 
+}
