@@ -7,7 +7,12 @@
 # ------------
 # BACK UP your important data. 
 # Every system change is potentially risky,[ BE PREPARED] 
-
+#------------------------------------
+# ▛▀▘▛▀▘▛▀▖▞▀▖▛▀▖▞▀▖        ▖▗▌ 
+# ▙▄ ▙▄ ▌ ▌▌ ▌▙▄▘▙▄▌ ▌ ▌▛▀▖▄▙▖▌ 
+# ▌  ▌  ▌ ▌▌ ▌▌▚ ▌ ▌ ▌ ▌▙▄▘ ▌ ▌ 
+# ▘  ▀▀▘▀▀ ▝▀ ▘ ▘▘ ▘ ▝▀▘▌    ▝▀ 
+#------------------------------------
 import sys 
 import time 
 from f_utils.futil import Futil 
@@ -21,6 +26,9 @@ D_CL="\033[0m"
 def main () : 
 
     fedo              = Futil() 
+    print(" {} {} {}".format (I_CL , fedo.msg_warn() , D_CL)) 
+    time.sleep(3) 
+    fedo.power_watcher() 
     cmd_ref           = fedo.get_requirements("f_cid.json")
     dist_name,curver  = fedo.extract_needed_data(cmd_ref,"CMD_RELEASE_MOD")
     next_release      = fedo.get_current_os_last_release(cmd_ref)
@@ -36,7 +44,7 @@ def main () :
     if next_release == 0x0 : 
         print("{}your current os is already up-to-date{}".format(S_CL , D_CL)) 
         print("{}your are running on {} {} {}".format(I_CL ,dist_name,curver,D_CL)) 
-    else : 
+    else :
         print("{}your release version is [{}] and your are out of date{}".format(E_CL ,curver,D_CL))
         print("jumping {} version...".format(next_release))
         curver+=next_release
