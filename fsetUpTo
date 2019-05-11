@@ -1,0 +1,171 @@
+#!/bin/env bash 
+
+#[WARNING !! ] 
+# this script is done in case you want to update 
+# without having to wait for the author of this script to do it 
+# but this is possible only if a new version of fedora is available
+# -----------------------------------------------------------------
+
+D_ERR_EX=$((0x003e8))   # DEFAULT ERROR EXITS 
+SED_ERR=$((0x00ff))     # STREAM  ERROR TRANSFORM
+CURRENT_BASE_RELEASE=${CURRENT_BASE_RELEASE=} # THE CURRENT RELEASE SUPPORTED 
+BASE_CMD=lsb_release    # CMD BASE 
+MAIN_BRANCH=master
+
+
+declare -A required_files=(
+    [main_exe]="Fsys_up.py" 
+    [core]="futil.py" 
+    [mirror]="f_cid.json" 
+)
+
+[ @private ] 
+{     
+
+prompt () {
+if  [[ -n $1 ]] ; then 
+    echo -e  "*$1"
+fi 
+}
+
+bail () {
+if [[ -n $1  ]] ; then
+    prompt "$1" 
+    exit $D_ERR_EX
+else 
+    echo "error"
+fi
+}
+
+get_release () {
+    local current_os_release=$($BASE_CMD -r | cut -d ":" -f2) 
+    [[ $current_os_release -lt $CURRENT_BASE_RELEASE ]] && 
+     read -p "run the main script to upgrade your os " 
+     case $REPLY in
+        [y|Y][yes|YES])./${required_files[main_exe]};; 
+        *)bail "keep your os update" ;;        
+     esac
+}
+
+f_cid_parse () {
+    local release_number  
+    for data  in $(cut -d ":" -f2 ${required_files[mirror]}) ; do  
+        if [[  $data =~ ^[0-9]+ ]]  ; then 
+        release_number=${data%%,*}
+        break 
+        fi 
+    done 
+    echo ${release_number}
+}  
+
+bind_f_cid () { 
+    sed -i s/$CURRENT_BASE_RELEASE/$1/g ${required_files[mirror]}    
+}
+
+} 
+
+[ f_support ] 
+{
+
+usage () {
+cat <<  HELP 
+------------------------------------------------------------------------------------
+SIMPLE USAGE :                                                                      |
+-------------/                                                                      | 
+-> ${0##*/}  number_version_release                                                 |
+                                                                                    |
+-> [ if you made any mistake concerning the release version you could put the flag  |
+   -rcid or --repare-cid  for an orginal return of the config file                  |
+                                                                                    |
+-> to diplay help :                                                                 |
+   ${0##*/} -h or --help                                                            |
+------------------------------------------------------------------------------------/
+HELP
+}
+
+branch=""
+make_auto_request  () {
+    read -p "you want to make a pull request on the original deposit " 
+    case  $REPLY in 
+    [yes]|[Y|y]) 
+    [[ -n $(which git) ]] && {
+    read -p "give a name to your branch :" branch_name 
+    [[ -n "$branch_name" ]] && {
+    branch=$branch_name 
+    git checkout -b ${branch_name}  
+    test $? -eq 0 || bail " fail to create branch "  
+    }|| {
+    bail "not allowed to create an empty branch" 
+    }
+    }||{
+    bail "git cmd not found"
+    }
+    ;; 
+    *)  
+    prompt  "tanks for using FedoraUp" 
+    ;; 
+esac 
+}
+
+contribute() {
+    if [[ -n "$branch" ]] ; then 
+        git pull $MAIN_BRANCH $branch 
+        if [[  $? -eq  0 ]] ;then 
+            prompt "thanks for  Pull Request $USER"
+        else 
+            bail "[fail] to make pull request"
+        fi  
+    fi 
+}
+} 
+CURRENT_BASE_RELEASE=$(f_cid_parse) 
+main () {
+    if (( $#  <  $((0x1)) )) ;then 
+        usage
+        bail " only one arguments is required" 
+    fi 
+    if [[ $1 =~ ^[0-9]+$ ]] ; then
+        prompt " PID task > $$" 
+        sleep 3 
+        if [[ -n $2  ]]  ;then
+            case $2 in  
+                "-rcid" | "--repare-cid" )
+                prompt "reparing ${required_files[mirror]}"
+                [[ $1 -lt 30 ]] && bail "only the versions higher than 30 be accepted" 
+                $(bind_f_cid $1) 
+                test  $1 -eq 0 && prompt "file repaired" ;  sleep 2 
+                grep -e $1 ${required_files[mirror]} 
+                ;;
+            esac
+        else  
+            [[ $1 -lt $CURRENT_BASE_RELEASE  ]] && bail "only the versions higher than $CURRENT_BASE_RELEASE be accepted" 
+        fi
+       [[ $1 -eq $CURRENT_BASE_RELEASE ]] && bail "you currently own this version"   
+       make_auto_request
+       $(bind_f_cid $1) 
+       [ $? -eq 0 ] &&  {
+        prompt "preparing to run the script"
+        sleep 3  
+        ./${required_files[main_exe]}  
+        test $? == 0  || bail "[fail] brutal end  execution" 
+        contribute 
+       }|| {
+         bail "stream tranforming failed" 
+       } 
+   elif [[  $1 == "-h"  ||  $1 == "--help" ]] ; then 
+    usage
+   else 
+       bail "required number version release "  ; exit $D_ERR_EX 
+   fi 
+    
+    return $((0x00000))
+} 
+[ -z $1 ] && { 
+    main
+}||{
+    [ -z $2 ] && {
+     main $1 
+    }||{
+    main $1 $2 
+    } 
+}
