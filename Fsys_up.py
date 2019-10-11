@@ -27,7 +27,7 @@ def main () :
 
     fedo              = Futil()
     #@ look up the type architure system 
-    fedo.archx64_support() ; 
+    fedo.archx64_support() 
     print(" {} {} {}".format (I_CL , fedo.msg_warn() , D_CL)) 
     time.sleep(3) 
     fedo.power_watcher() 
