@@ -4,15 +4,31 @@ import os
 import subprocess 
 import time
 import json
-import sys 
+import sys
+import struct 
+
+
+class NOARCH_SUPPORT (Exception) : 
+    def __init__(self , *args , **kwargs) : 
+        Exception.__init__(self,*args , **kwargs)
+
 
 class Futil :
-   
+ 
+    SIG_ARCH_NO_SUPPORTED = 0x0017
+    SYS_BITES_RATE = 0X0008    
     def get_requirements (self , json_file): 
         if os.path.exists(json_file) and os.path.getsize(json_file)> 0 : 
             return json.load(open(json_file)) 
         else:
-            raise FileNotFoundError("the file is missing or empty") 
+            raise FileNotFoundError("the file is missing or empty")
+    
+    def archx64_support (self):
+        sys_base_bite =  struct.calcsize("P")   # reaching the base bites  8bites for 64 and 4bites for 32  
+        arch = sys_base_bite * self.SYS_BITES_RATE 
+        if arch is 32 : 
+            raise NOARCH_SUPPORT("32 bites removed for base support") 
+            exit(self.SIG_ARCH_NO_SUPPORTED)
 
     def extract_needed_data(self ,d_obj, key) : 
         assert key in d_obj.keys()

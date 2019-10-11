@@ -25,7 +25,9 @@ D_CL="\033[0m"
 
 def main () : 
 
-    fedo              = Futil() 
+    fedo              = Futil()
+    #@ look up the type architure system 
+    fedo.archx64_support() ; 
     print(" {} {} {}".format (I_CL , fedo.msg_warn() , D_CL)) 
     time.sleep(3) 
     fedo.power_watcher() 
